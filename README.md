@@ -83,23 +83,19 @@ This information is then converted into a python dictionary using create_diction
 
 This will output a dictionary, in this case, called haplotype1_read_dict.npy
 
-From this reads can be phased. The rules for phasing rely on underlying data type so ensure you use the most appropriate script. For this you will need to install pysam, pandas, numpy, multiprocessing, csv, intervaltree and math. You will need a contig lengths file
-
-
+From this reads can be phased. The rules for phasing rely on underlying data type so ensure you use the most appropriate script. For this you will need to install pysam, pandas, numpy, multiprocessing, csv, intervaltree and math. You will need a contig lengths file which is a tab seperated file with a contig name followed by the length of the contig. Then run the compare alignments file. Foe example for hic run compare_alignments_hic.py
 
 > python compare_alignments_hic.py  \
-> --chromosome chromosome \
+> --chromosome chr1 \
 > --haplotype1_read_dict haplotype1_read_dict.npy \
 > --haplotype2_read_dict haplotype2_read_dict.npy \
-> --haplotype1_hic_snp_phased_reads atac/atac_snps/final_atac_reads_with_snps/haplotype1_reads_${SAMPLE}_${CHR}.txt \
-> --haplotype2_hic_snp_phased_reads atac/atac_snps/final_atac_reads_with_snps/haplotype2_reads_${SAMPLE}_${CHR}.txt \
-> --haplotype1_contig_lenghts ${CHR}-hap1-caus3D.renamed.contiglengths.txt \
-> --haplotype2_contig_lenghts ${CHR}-hap2-caus3D.renamed.contiglengths.txt  \
+> --haplotype1_hic_snp_phased_reads haplotype1_snps_chr1.txt \
+> --haplotype2_hic_snp_phased_reads haplotype2_snps_chr1.txt \
+> --haplotype1_contig_lenghts chr1-hap1.contiglengths.txt \
+> --haplotype2_contig_lenghts chr1-hap2.contiglengths.txt  \
 > --outputdir output_directory  \
-> --sample ${SAMPLE}
+> --sample hic
 
 
-
-
-
+This will output a readname list for QC as well as bam files of the two haplotypes. 
 
