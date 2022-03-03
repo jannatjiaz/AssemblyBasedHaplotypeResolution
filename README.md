@@ -74,8 +74,29 @@ If using long-reads, for example iso-seq, it is not appropriate to use R1 and R2
 > samtools view -F 256 allreads_hap1.sorted.bam | cut -f1,3,4,5 | awk '{print $1 "," "mapped" "," $2 "," $3 "," $4 }' > hap1_alignments.txt \
 > samtools view -F 256 allreads_hap2.sorted.bam | cut -f1,3,4,5  | awk '{print $1 "," "mapped" "," $2 "," $3 "," $4 }'> hap2_alignments.txt 
 
-This information is then converted into a python dictionary:
+This information is then converted into a python dictionary using create_dictionary.py (run for both haplotypes). You will need to install numpy. E.g. for haplotype 1:
 
+> python create_dictionary.py  \
+> --haplotype_reads hap1_alignments.txt \
+> --haplotype 1 
+> --outputdir output_directory
+
+This will output a dictionary, in this case, called haplotype1_read_dict.npy
+
+From this reads can be phased. The rules for phasing rely on underlying data type so ensure you use the most appropriate script. For this you will need to install pysam, pandas, numpy, multiprocessing, csv, intervaltree and math. You will need a contig lengths file
+
+
+
+> python compare_alignments_hic.py  \
+> --chromosome chromosome \
+> --haplotype1_read_dict haplotype1_read_dict.npy \
+> --haplotype2_read_dict haplotype2_read_dict.npy \
+> --haplotype1_hic_snp_phased_reads atac/atac_snps/final_atac_reads_with_snps/haplotype1_reads_${SAMPLE}_${CHR}.txt \
+> --haplotype2_hic_snp_phased_reads atac/atac_snps/final_atac_reads_with_snps/haplotype2_reads_${SAMPLE}_${CHR}.txt \
+> --haplotype1_contig_lenghts ${CHR}-hap1-caus3D.renamed.contiglengths.txt \
+> --haplotype2_contig_lenghts ${CHR}-hap2-caus3D.renamed.contiglengths.txt  \
+> --outputdir output_directory  \
+> --sample ${SAMPLE}
 
 
 
