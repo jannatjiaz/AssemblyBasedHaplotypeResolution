@@ -13,7 +13,7 @@ In order to run this code you need a SNP file for haplotype A and haplotype B de
 
 The output of this will be: chromosome, position, ref_base, read_name, postion_in_read, base
 
-Once you have the CCS list you can determine which SNPs belong to each haplotype. You will need a list of all the CCS reads that are from haplotype 1 and all the reads from haplotype 2 (haplotype1_readnames.txt and haplotype2_readnames.txt)
+Once you have the this output, you can determine which SNPs belong to each haplotype. You will need a list of all the CCS reads that are from haplotype 1 and all the reads from haplotype 2 (haplotype1_readnames.txt and haplotype2_readnames.txt)
 
 > python generate_snps_from_ccs.py  \
 > --chromosome chromosome
@@ -22,11 +22,11 @@ Once you have the CCS list you can determine which SNPs belong to each haplotype
 > --mpileup_reads mpileup_CCS.txt \
 > --outputdir output_directory
 
-This will produce two files e.g. haploype1_snps_chr1.txt and haploype2_snps_chr1.txt. These will contain the snps at each position that has been inputted for the chromothrpitic and wild-type alleles.
+This will produce two files e.g. haploype1_snps_chr1.txt and haploype2_snps_chr1.txt. These will contain the snps at each position that has been inputted for haplotype 1 and haplotype 2.
 
 ## Haplotype resolve epigenetic and transcriptomic reads
 
-Now the SNPs for each haplotpye have been determined, you will be able to phase the epigenetic and transcriptomic datasets. The same steps are needed regardless of data type but the underlying rules change so each script has been tailored for the specific datasets. Here instructions are written for haplotpye resolving Hi-C reads however the scripts for haplotype resolving other functional dataset can be replaces and the parameters stay the same.  
+Now the SNPs for each haplotpye have been determined, you will be able to phase the epigenetic and transcriptomic datasets. The same steps are needed regardless of data type but depending on the data type, the script has been tailored for the unique properties. Here instructions are written for haplotpye resolving Hi-C reads however the scripts for haplotype resolving other functional dataset can be replaced and the input parameters are the same.  
 
 ### Generate SNPs in epigenetic and transcriptomic reads
 
@@ -36,18 +36,40 @@ The first step is to determine which SNPs are in which reads, similar to the pro
 >   python mpileup_hic.py  --bam hic.sorted.bam --fasta genome.fa --chr chromosome --start $VARIANT  >> mpileup_hic.txt
 > done <  positions.txt
 
-Now you have the which SNPs are present in which reads, you can determine which reads are from which haplotpye based on SNPs. Run generate_hic_reads_with_snps.py. For example for chr1:
+Please note use the mpileup script that matches the data type. For example for ChIP and ATAC use mpileup_pairedend.py or for long read iso-seq use mpileup_longread.py. The same parameters are used for all scripts.
 
-> python generate_hic_reads_with_snps.py \
+
+Now you have the which SNPs are present in which reads, you can determine which reads are from which haplotpye based on SNPs. Run generate_hic_reads_with_snps.py. This can be used on all data types. For example for chr1:
+
+> python generate_functional_reads_with_snps.py \
 > --chromosome chr1 --hic_run run1 \
 > --haplotype1_snps haplotype1_snps_chr1.txt \
 > --haplotype2_snps haplotype2_snps_chr2.txt \
 > --mpileup_reads mpileup_hic.txt \
 > --outputdir output_directory
 
+This will give you two list of reads: one of which is reads which cover SNPs from haplotype 1 and the other that covers haplotype 2.
+
 ### Haplotype resolution 
 
-The majority of haplotype resolution is from SNP presence but some resolution can be gained from differences in mapping. For Hi-C reads, further information is gained from a weighted probability that two reads are interacting at specific distances. To take these factors into account, you will need a list of the readnames for all the 
+The majority of haplotype resolution is from SNP presence but some resolution can be gained from differences in mapping. For Hi-C reads, further information is gained from a weighted probability that two reads are interacting at specific distances. You can also take these factors into account in phasing. 
+
+Fist use samtools (https://github.com/samtools) in order to get the position of mapped reads. You will need to map all the Hi-C reads to the haplotype 1 assembly and all the reads to the haplotype 2 assembly:
+
+> samtools view -F 256 -f65  allreads_hap1.sorted.bam | cut -f1,3,4,5  > R1_hap1.txt
+> samtools view -F 256 -f129  allreads_hap1.sorted.bam | cut -f1,3,4,5 > R2_hap1.txt
+> samtools view -F 256 -f65  allreads_hap2.sorted.bam | cut -f1,3,4,5  > R1_hap2.txt
+> samtools view -F 256 -f129  allreads_hap2.sorted.bam | cut -f1,3,4,5 > R2_hap2.txt
+
+If using long-reads, for example iso-seq, it is not appropriate to use R1 and R2 so instead use:
+
+> samtools view -F 256 allreads_hap1.sorted.bam | cut -f1,3,4,5  > R1_hap1.txt
+> samtools view -F 256 allreads_hap2.sorted.bam | cut -f1,3,4,5  > R1_hap2.txt
+
+
+
+
+
 
 
 
