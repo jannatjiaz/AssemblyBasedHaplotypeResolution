@@ -54,18 +54,27 @@ This will give you two list of reads: one of which is reads which cover SNPs fro
 
 The majority of haplotype resolution is from SNP presence but some resolution can be gained from differences in mapping. For Hi-C reads, further information is gained from a weighted probability that two reads are interacting at specific distances. You can also take these factors into account in phasing. 
 
+Processing bam files in python is computationally slow and intensitive therefore isolating necessary mapping proporties using bash and samtools speeds the process up.
+
 Fist use samtools (https://github.com/samtools) in order to get the position of mapped reads. You will need to map all the Hi-C reads to the haplotype 1 assembly and all the reads to the haplotype 2 assembly:
 
-> samtools view -F 256 -f65  allreads_hap1.sorted.bam | cut -f1,3,4,5  > R1_hap1.txt
-> samtools view -F 256 -f129  allreads_hap1.sorted.bam | cut -f1,3,4,5 > R2_hap1.txt
-> samtools view -F 256 -f65  allreads_hap2.sorted.bam | cut -f1,3,4,5  > R1_hap2.txt
-> samtools view -F 256 -f129  allreads_hap2.sorted.bam | cut -f1,3,4,5 > R2_hap2.txt
+> samtools view -F 256 -f65  allreads_hap1.sorted.bam | cut -f1,3,4,5  > R1_hap1.txt \
+> samtools view -F 256 -f129  allreads_hap1.sorted.bam | cut -f1,3,4,5 > R2_hap1.txt \
+> samtools view -F 256 -f65  allreads_hap2.sorted.bam | cut -f1,3,4,5  > R1_hap2.txt \
+> samtools view -F 256 -f129  allreads_hap2.sorted.bam | cut -f1,3,4,5 > R2_hap2.txt 
+
+Now these mapping perameters can be combined using:
+
+> awk 'NR==FNR {a[$1]=$0;next}{print $0, ($1 in a ? a[$1]:"NA")}' R2_hap1.txt R1_hap1.txt | awk '{if ($4!=0 && $8!=0) print $1,"mapped","mapped",$4,$8,$2,$6,$3,$7; else if ($4!=0 && $8==0) print $1,"mapped","unmapped",$4,$8,$2,$6,$3,$7; else if ($4==0 && $8!=0) print $1,"unmapped","mapped",$4,$8,$2,$6,$3,$7; }' | tr " " "," > hap1_alignments.txt
+
+> awk 'NR==FNR {a[$1]=$0;next}{print $0, ($1 in a ? a[$1]:"NA")}' R2_hap2.txt R1_hap2.txt | awk '{if ($4!=0 && $8!=0) print $1,"mapped","mapped",$4,$8,$2,$6,$3,$7; else if ($4!=0 && $8==0) print $1,"mapped","unmapped",$4,$8,$2,$6,$3,$7; else if ($4==0 && $8!=0) print $1,"unmapped","mapped",$4,$8,$2,$6,$3,$7; }' | tr " " "," > hap2_alignments.txt
 
 If using long-reads, for example iso-seq, it is not appropriate to use R1 and R2 so instead use:
 
-> samtools view -F 256 allreads_hap1.sorted.bam | cut -f1,3,4,5  > R1_hap1.txt
-> samtools view -F 256 allreads_hap2.sorted.bam | cut -f1,3,4,5  > R1_hap2.txt
+> samtools view -F 256 allreads_hap1.sorted.bam | cut -f1,3,4,5 | awk '{print $1 "," "mapped" "," $2 "," $3 "," $4 }' > hap1_alignments.txt \
+> samtools view -F 256 allreads_hap2.sorted.bam | cut -f1,3,4,5  | awk '{print $1 "," "mapped" "," $2 "," $3 "," $4 }'> hap2_alignments.txt 
 
+This information is then converted into a python dictionary:
 
 
 
