@@ -5,7 +5,7 @@ HapFunc is used to haplotpye resolve epigentic and transcriptomic datasets based
 
 ## Generate SNPs in CCS reads
 
-In order to run this code you need a SNP file for haplotype A and haplotype B derived from CCS reads. You need a list of the position of variants that were used for whatshap phasing (filter to remove simple repeats regions). You can split this list into multiple files to parallelise. Then run mpileup_CCS.py:
+In order to run this code you need a SNP file for haplotype A and haplotype B derived from CCS reads. You need a list of the position of variants that were used for whatshap phasing (filter to remove simple repeats regions). You can split this list into multiple files to parallelise and then merge. Run mpileup_CCS.py:
 
 > while read VARIANT; do \
 >       python mpileup_CCS.py --bam CCS.sorted.bam --fasta genome.fa  --chr chromosome --start $VARIANT  >> mpileup_CCS.txt \
@@ -26,7 +26,7 @@ This will produce two files e.g. haploype1_snps_chr1.txt and haploype2_snps_chr1
 
 ## Haplotype resolve epigenetic and transcriptomic reads
 
-Now the SNPs for each haplotpye have been determined, you will be able to phase the epigenetic and transcriptomic datasets. The same steps are needed regardless of data type but depending on the data type, the script has been tailored for the unique properties. Here instructions are written for haplotpye resolving Hi-C reads however the scripts for haplotype resolving other functional dataset can be replaced and the input parameters are the same.  
+Now the SNPs for each haplotype have been determined, you will be able to phase the epigenetic and transcriptomic datasets. The same steps are needed regardless of data type but depending on the data type, the script has been tailored for the unique properties. Here instructions are written for haplotpye resolving Hi-C reads however the scripts for haplotype resolving other functional dataset can be replaced and the input parameters are the same.  
 
 ### Generate SNPs in epigenetic and transcriptomic reads
 
@@ -83,7 +83,7 @@ This information is then converted into a python dictionary using create_diction
 
 This will output a dictionary, in this case, called haplotype1_read_dict.npy
 
-From this reads can be phased. The rules for phasing rely on underlying data type so ensure you use the most appropriate script. For this you will need to install pysam, pandas, numpy, multiprocessing, csv, intervaltree and math. You will need a contig lengths file which is a tab seperated file with a contig name followed by the length of the contig. Then run the compare alignments file. Foe example for hic run compare_alignments_hic.py
+From this reads can be phased. The rules for phasing rely on underlying data type so ensure you use the most appropriate script. For this you will need to install pysam, pandas, numpy, multiprocessing, csv, intervaltree and math. You will need a contig lengths file which is a tab seperated file with a contig name followed by the length of the contig. Then run the compare alignments file on a 10 core machine. For example for hic run compare_alignments_hic.py
 
 > python compare_alignments_hic.py  \
 > --chromosome chr1 \
@@ -93,9 +93,21 @@ From this reads can be phased. The rules for phasing rely on underlying data typ
 > --haplotype2_hic_snp_phased_reads haplotype2_snps_chr1.txt \
 > --haplotype1_contig_lenghts chr1-hap1.contiglengths.txt \
 > --haplotype2_contig_lenghts chr1-hap2.contiglengths.txt  \
+> --hap1_aligned_bam hap1_aligned_bam \
+> --hap2_aligned_bam hap2_aligned_bam \
 > --outputdir output_directory  \
 > --sample hic
 
+This will output a readname list for reads which can be explicitly assigned, reads that have been randomly assigned and a file with both explicity and randomly assigned to each haplotype.  
 
-This will output a readname list for QC as well as bam files of the two haplotypes. 
+For ChIP-seq and ATAC-seq, use compare_alignments_pariedend.py.
+For Iso-seq, use compare_alignments_isoseq.py
+
+### Generate a bam from the text file. 
+
+Reads from each haplotype can then be pulled out from the appropriate bam file. This can be does using generate_haplotype_sam.py. For example for haplotpye 1 for chromosome 1 Hi-C reads:
+
+> python generate_haplotype_sam.py --chromosome chr1 --sample_name hic --haplotype 1 --outputdir outputdir --inputdir inputdir -bam reads_aligned_to_hap1.bam
+
+
 
