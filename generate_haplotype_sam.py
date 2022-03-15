@@ -4,7 +4,7 @@ import pandas as pd
 import pysam 
 import argparse
 
-parser = argparse.ArgumentParser(description='usage:  generate_haplotype_bam.py  \
+parser = argparse.ArgumentParser(description='usage:  generate_haplotype_sam.py  \
     --chromosome chromosome \
     --sample_name sample_name\
     --haplotype haplotype\
